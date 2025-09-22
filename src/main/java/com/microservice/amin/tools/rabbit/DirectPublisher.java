@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class DirectPublisher {
-    
+
     @Autowired
     EnvironmentVars environmentVars;
 
@@ -30,15 +30,42 @@ public class DirectPublisher {
             Channel channel = connection.createChannel();
 
             channel.exchangeDeclare(exchange, "direct");
-            
-            
+
             channel.basicPublish(exchange, routingKey, null, GsonTools.toJson(message).getBytes());
 
-            
         } catch (Exception e) {
             System.out.println("Eror");
         }
     }
-    
-    
+
+    public void publish(String exchange, String routingKey, Object message) {
+        try {
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(environmentVars.envData.rabbitServerUrl);
+            Connection connection = factory.newConnection();
+            Channel channel = connection.createChannel();
+
+            channel.exchangeDeclare(exchange, "direct");
+
+            String jsonMessage = GsonTools.toJson(message);
+            System.out.println("=== PUBLICANDO EN RABBITMQ ===");
+            System.out.println("Host: " + environmentVars.envData.rabbitServerUrl);
+            System.out.println("Exchange: " + exchange);
+            System.out.println("Routing Key: " + routingKey);
+            System.out.println("Mensaje JSON: " + jsonMessage);
+            System.out.println("=============================");
+
+            channel.basicPublish(exchange, routingKey, null, jsonMessage.getBytes());
+
+            System.out.println("✅ Mensaje publicado exitosamente en RabbitMQ");
+
+            channel.close();
+            connection.close();
+
+        } catch (Exception e) {
+            System.out.println("❌ Error al publicar mensaje: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

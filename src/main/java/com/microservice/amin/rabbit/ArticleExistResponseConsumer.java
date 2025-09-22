@@ -5,11 +5,12 @@
 package com.microservice.amin.rabbit;
 
 import com.google.gson.internal.LinkedTreeMap;
-import com.microservice.amin.rabbit.dto.SendArticleExist;
+import com.microservice.amin.rabbit.dto.CatalogArticleResponse;
 import com.microservice.amin.tools.gson.GsonTools;
-import com.microservice.amin.tools.rabbit.DirectConsumer;
-import com.microservice.amin.tools.rabbit.RabbitEvent;
+import com.microservice.amin.tools.rabbit.CatalogConsumer;
 import com.microservice.amin.wish.WishlistService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.annotation.PostConstruct;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,57 +24,58 @@ import org.springframework.stereotype.Service;
 @Service
 public class ArticleExistResponseConsumer {
 
+    private static final Logger logger = LoggerFactory.getLogger(ArticleExistResponseConsumer.class);
     private final Map<String, Boolean> responseMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private DirectConsumer directConsumer;
+    private CatalogConsumer catalogConsumer;
 
     @Autowired
     private WishlistService wishlistService;
 
     @PostConstruct
     public void startListening() {
-        directConsumer
-                .init("article_exist", "article_exist", "catalog_article_exist")
-                .addProcessor("article_exist", this::processResponse)
+        logger.info("=== INICIANDO CONSUMER DE RESPUESTAS DEL CATÁLOGO ===");
+        logger.info("Exchange: article_exist_response");
+        logger.info("Routing Key: article_exist_response");
+        logger.info("Queue: amin_article_exist_response");
+        logger.info("=====================================================");
+
+        catalogConsumer
+                .init("article_exist_response", "article_exist_response", "amin_article_exist_response")
+                .setMessageProcessor(this::processCatalogMessage)
                 .start();
 
     }
 
-    private void processResponse(RabbitEvent event) {
+    private void processCatalogMessage(String messageBody) {
         try {
+            logger.info("Procesando respuesta del catálogo");
+            logger.debug("JSON recibido del catálogo: {}", messageBody);
 
-            SendArticleExist sendArticleExist = null;
-            System.out.println("eventType:   " + event.type);
-            
-            if ("article_exist".equals(event.type)) {
-                
+            // Convertir JSON directamente a CatalogArticleResponse
+            CatalogArticleResponse catalogResponse = GsonTools.gson().fromJson(messageBody,
+                    CatalogArticleResponse.class);
 
-                // Convertir 'message' en SendArticleExist
-                if (event.message instanceof LinkedTreeMap) {
-                    String jsonMessage = GsonTools.toJson(event.message);
-                    System.out.println("JSON generado desde LinkedTreeMap: " + jsonMessage);
-
-                    // Convertir JSON a objeto
-                    sendArticleExist = GsonTools.gson().fromJson(jsonMessage, SendArticleExist.class);
-
-                    // Validar que el objeto no sea nulo
-                    if (sendArticleExist == null || sendArticleExist.getReferenceId() == null) {
-                        System.err.println("El objeto SendArticleExist o su referenceId son nulos");
-                        return;
-                    }
-                } else {
-                    System.err.println("Formato inesperado para 'message': " + event.message);
-                    return;
-                }
-            } else {
-                throw new Error("No se pudo procesar el mensaje, tipo desconocido: " + event.type);
+            // Validar que el objeto no sea nulo
+            if (catalogResponse == null || catalogResponse.getMessage() == null) {
+                logger.error("El objeto CatalogArticleResponse o su message son nulos");
+                return;
             }
 
-            wishlistService.updateArticleStatus(sendArticleExist.getReferenceId(), true);
-            
+            // Procesar la respuesta del catálogo
+            CatalogArticleResponse.ArticleExistMessage articleMessage = catalogResponse.getMessage();
+            String correlationId = catalogResponse.getCorrelationId();
+            boolean isValid = articleMessage.isValid();
+
+            logger.info("Respuesta del catálogo - Artículo: {}, Válido: {}, CorrelationId: {}",
+                    articleMessage.getArticleId(), isValid, correlationId);
+
+            // Actualizar el estado del artículo en la wishlist
+            wishlistService.updateArticleStatus(correlationId, isValid);
+
         } catch (Exception e) {
-            System.err.println("Error procesando la respuesta: " + e.getMessage());
+            logger.error("Error procesando la respuesta del catálogo: {}", e.getMessage(), e);
         }
     }
 

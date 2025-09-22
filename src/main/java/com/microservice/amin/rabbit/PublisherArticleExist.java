@@ -4,16 +4,14 @@
  */
 package com.microservice.amin.rabbit;
 
-import com.microservice.amin.rabbit.dto.WishItemDataEvent;
 import com.microservice.amin.tools.rabbit.DirectPublisher;
-import com.microservice.amin.tools.rabbit.RabbitEvent;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
-
 
 /**
  *
@@ -27,21 +25,29 @@ public class PublisherArticleExist {
     private DirectPublisher directPublisher;
 
     public void publishArticleExist(String articleId, String correlationId) {
-        // Crear el cuerpo del mensaje usando WishItemDataEvent
-        WishItemDataEvent message = new WishItemDataEvent(articleId, correlationId);
+        // Crear el mensaje que espera el catálogo
+        Map<String, Object> message = new HashMap<>();
+        message.put("referenceId", correlationId);
+        message.put("articleId", articleId);
 
-        // Crear el evento RabbitEvent
-        RabbitEvent event = new RabbitEvent();
-        event.type = "article_exist";
-        event.version = 1;
-        event.exchange = "article_exist";
-        event.routingKey = "article_exist";
-        event.message = message;
+        // Crear el objeto principal que espera el catálogo
+        Map<String, Object> catalogMessage = new HashMap<>();
+        catalogMessage.put("correlation_id", correlationId);
+        catalogMessage.put("routing_key", "article_exist_response");
+        catalogMessage.put("exchange", "article_exist_response");
+        catalogMessage.put("message", message);
 
-        // Publicar el evento
-        directPublisher.publish(event.exchange, event.routingKey, event);
+        System.out.println("=== ENVIANDO MENSAJE AL CATÁLOGO ===");
+        System.out.println("Exchange: article_exist");
+        System.out.println("Routing Key: article_exist");
+        System.out.println("Correlation ID: " + correlationId);
+        System.out.println("Article ID: " + articleId);
+        System.out.println("Mensaje completo: " + catalogMessage);
+        System.out.println("=====================================");
+
+        // Publicar directamente el mensaje (no usar RabbitEvent)
+        directPublisher.publish("article_exist", "article_exist", catalogMessage);
     }
-
 
     public boolean waitForResponse(String articleId, long timeout) throws InterruptedException {
         long startTime = System.currentTimeMillis();

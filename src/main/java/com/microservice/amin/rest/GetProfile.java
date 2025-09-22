@@ -49,9 +49,10 @@ public class GetProfile {
 
         List<WishlistItem> listWishItem = wishlistService.findWishListItemByProfileId(profile.getId());
 
-        // Extraer los IDs de cada WishlistItem y almacenarlos en una lista de Strings
+        // Extraer los articleId de cada WishlistItem y almacenarlos en una lista de
+        // Strings
         List<String> listWishItemIds = listWishItem.stream()
-                .map(WishlistItem::getId) // Usa el método getter para obtener el ID
+                .map(WishlistItem::getArticleId) // Usa el método getter para obtener el articleId
                 .collect(Collectors.toList());
 
         ProfileResponseDTO responseDTO = new ProfileResponseDTO(

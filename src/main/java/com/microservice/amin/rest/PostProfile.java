@@ -46,13 +46,28 @@ public class PostProfile {
         User user = tokenService.validateUser(auth);
         logger.debug("Usuario validado exitosamente: {}", user.getId());
 
-        Profile profile = new Profile();
-        profile.setUserId(user.id);
-        profile.setFirstName(profileRequest.getFirstName());
-        profile.setLastName(profileRequest.getLastName());
-        profile.setEmail(profileRequest.getEmail());
-        profile.setCreationDate(new Date());
-        profile.setImageId(profileRequest.getImageId());
+        // Buscar perfil existente del usuario
+        Profile existingProfile = service.findProfileByUserID(user.getId());
+
+        Profile profile;
+        if (existingProfile != null) {
+            // Actualizar perfil existente
+            profile = existingProfile;
+            profile.setFirstName(profileRequest.getFirstName());
+            profile.setLastName(profileRequest.getLastName());
+            profile.setEmail(profileRequest.getEmail());
+            profile.setImageId(profileRequest.getImageId());
+            profile.setUpdateDate(new Date());
+        } else {
+            // Crear nuevo perfil
+            profile = new Profile();
+            profile.setUserId(user.id);
+            profile.setFirstName(profileRequest.getFirstName());
+            profile.setLastName(profileRequest.getLastName());
+            profile.setEmail(profileRequest.getEmail());
+            profile.setCreationDate(new Date());
+            profile.setImageId(profileRequest.getImageId());
+        }
 
         Profile savedProfile = service.createOrUpdateProfile(profile, auth);
 

@@ -76,16 +76,16 @@ public class DirectConsumer {
 
             new Thread(() -> {
                 try {
-                    //logger.info("RabbitMQ Escuchando " + queue);
+                    // logger.info("RabbitMQ Escuchando " + queue);
 
                     channel.basicConsume(queue, true, new EventConsumer(channel));
                 } catch (Exception e) {
-                    //logger.error("RabbitMQ ", e);
+                    // logger.error("RabbitMQ ", e);
                     startDelayed();
                 }
             }).start();
         } catch (Exception e) {
-            //logger.error("RabbitMQ ", e);
+            // logger.error("RabbitMQ ", e);
             startDelayed();
         }
     }
@@ -97,23 +97,27 @@ public class DirectConsumer {
         }
 
         @Override
-        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) {
+        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+                byte[] body) {
             try {
                 // Deserializar el evento RabbitEvent
-                System.out.println("Body recibido: "+new String(body));
+                System.out.println("Body recibido: " + new String(body));
                 RabbitEvent event = RabbitEvent.fromJson(new String(body));
-                
+
                 // Validar el evento
                 validator.validate(event);
 
                 // Procesar según el tipo de evento
-                EventProcessor processor = listeners.get(event.type);
+                String eventType = (event.type == null || event.type.isEmpty()) ? "" : event.type;
+                EventProcessor processor = listeners.get(eventType);
 
                 if (processor != null) {
                     processor.process(event);
                 } else {
                     // Procesar otros tipos de eventos si es necesario
-                    throw new Error("No existe un precesador para dicho tipo de mensaje");
+                    System.out.println("No existe un procesador para el tipo de mensaje: '" + eventType + "'");
+                    System.out.println("Procesadores disponibles: " + listeners.keySet());
+                    throw new Error("No existe un procesador para dicho tipo de mensaje: '" + eventType + "'");
                 }
 
             } catch (Exception e) {

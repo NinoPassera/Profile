@@ -9,16 +9,16 @@ package com.microservice.amin.rest.dto;
  * @author cuent
  */
 public class WishListProfileRequest {
-    private String pofileId;
+    private String profileId;
     private String articleId;
     private String action;
 
-    public String getPofileId() {
-        return pofileId;
+    public String getProfileId() {
+        return profileId;
     }
 
-    public void setPofileId(String pofileId) {
-        this.pofileId = pofileId;
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
     }
 
     public String getArticleId() {
@@ -36,7 +36,5 @@ public class WishListProfileRequest {
     public void setAction(String action) {
         this.action = action;
     }
-    
-    
-    
+
 }
