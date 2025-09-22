@@ -56,14 +56,34 @@ public class PostProfile {
 
         Profile savedProfile = service.createOrUpdateProfile(profile, auth);
 
+        // Crear respuesta con todos los datos del perfil
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Perfil procesado exitosamente");
-        response.put("profileId", savedProfile.getId());
-        response.put("userId", savedProfile.getUserId());
         response.put("status", "success");
+        response.put("data", createProfileData(savedProfile));
 
         logger.info("Perfil procesado exitosamente. ProfileId: {}", savedProfile.getId());
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Crea un mapa con todos los datos del perfil para la respuesta
+     * 
+     * @param profile El perfil a incluir en la respuesta
+     * @return Mapa con los datos del perfil
+     */
+    private Map<String, Object> createProfileData(Profile profile) {
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("id", profile.getId());
+        profileData.put("userId", profile.getUserId());
+        profileData.put("firstName", profile.getFirstName());
+        profileData.put("lastName", profile.getLastName());
+        profileData.put("email", profile.getEmail());
+        profileData.put("imageId", profile.getImageId());
+        profileData.put("creationDate", profile.getCreationDate());
+        profileData.put("updateDate", profile.getUpdateDate());
+
+        return profileData;
     }
 
 }
