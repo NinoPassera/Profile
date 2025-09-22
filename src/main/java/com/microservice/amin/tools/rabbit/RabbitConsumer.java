@@ -1,6 +1,6 @@
 package com.microservice.amin.tools.rabbit;
 
-import com.microservice.amin.tools.EnvironmentVars;
+import com.microservice.amin.config.AppConfig;
 import com.rabbitmq.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public abstract class RabbitConsumer {
     protected static final Logger logger = LoggerFactory.getLogger(RabbitConsumer.class);
 
     @Autowired
-    protected EnvironmentVars environmentVars;
+    protected AppConfig appConfig;
 
     protected String exchange;
     protected String routingKey;
@@ -63,7 +63,7 @@ public abstract class RabbitConsumer {
     public void start() {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(environmentVars.envData.rabbitServerUrl);
+            factory.setHost(appConfig.getRabbitHost());
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
 

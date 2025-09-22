@@ -79,7 +79,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (profileService.findProfileByUserID(profileId) == null) {
+        if (profileService.getProfile(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 
@@ -101,7 +101,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (profileService.findProfileByUserID(profileId) == null) {
+        if (profileService.getProfile(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 
@@ -138,7 +138,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (profileService.findProfileByUserID(profileId) == null) {
+        if (profileService.getProfile(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 

@@ -1,6 +1,6 @@
 package com.microservice.amin.tools.rabbit;
 
-import com.microservice.amin.tools.EnvironmentVars;
+import com.microservice.amin.config.AppConfig;
 import com.microservice.amin.tools.gson.GsonTools;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -20,7 +20,7 @@ public abstract class RabbitPublisher {
     protected static final Logger logger = LoggerFactory.getLogger(RabbitPublisher.class);
 
     @Autowired
-    protected EnvironmentVars environmentVars;
+    protected AppConfig appConfig;
 
     /**
      * Publica un mensaje en RabbitMQ
@@ -28,7 +28,7 @@ public abstract class RabbitPublisher {
     public void publish(String exchange, String routingKey, Object message) {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost(environmentVars.envData.rabbitServerUrl);
+            factory.setHost(appConfig.getRabbitHost());
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
 
@@ -60,7 +60,7 @@ public abstract class RabbitPublisher {
      */
     protected void logPublishInfo(String exchange, String routingKey, String jsonMessage) {
         logger.info("=== PUBLICANDO EN RABBITMQ ===");
-        logger.info("Host: {}", environmentVars.envData.rabbitServerUrl);
+        logger.info("Host: {}", appConfig.getRabbitHost());
         logger.info("Exchange: {}", exchange);
         logger.info("Routing Key: {}", routingKey);
         logger.info("Mensaje JSON: {}", jsonMessage);

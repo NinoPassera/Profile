@@ -10,11 +10,11 @@ import com.microservice.amin.rabbit.PublishProfile;
 import com.microservice.amin.rabbit.dto.PublishProfileDataEvent;
 import com.microservice.amin.security.TokenService;
 import com.microservice.amin.tools.Validations;
+import com.microservice.amin.config.AppConfig;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,8 +26,8 @@ public class ProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
 
-    @Value("${rabbitmq.exchange.profile}")
-    private String profileExchange;
+    @Autowired
+    private AppConfig appConfig;
 
     @Autowired
     private ProfileRepository profileRepository;
@@ -168,12 +168,12 @@ public class ProfileService {
                     profile.getCreationDate(),
                     profile.getUpdateDate());
 
-            publishProfile.publish(profileExchange, event);
+            publishProfile.publish(appConfig.getRabbitExchange(), event);
             logger.debug("Evento de perfil publicado exitosamente para ProfileId: {} en exchange: {}",
-                    profile.getId(), profileExchange);
+                    profile.getId(), appConfig.getRabbitExchange());
         } catch (Exception e) {
             logger.error("Error al publicar evento de perfil para ProfileId: {} en exchange: {}",
-                    profile.getId(), profileExchange, e);
+                    profile.getId(), appConfig.getRabbitExchange(), e);
             // No lanzamos excepción aquí para no fallar la operación principal
         }
     }
