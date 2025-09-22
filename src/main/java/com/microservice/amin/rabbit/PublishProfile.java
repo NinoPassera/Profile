@@ -5,9 +5,7 @@
 package com.microservice.amin.rabbit;
 
 import com.microservice.amin.rabbit.dto.PublishProfileDataEvent;
-import com.microservice.amin.tools.rabbit.FanoutPublisher;
-import com.microservice.amin.tools.rabbit.RabbitEvent;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.microservice.amin.tools.rabbit.RabbitPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,17 +13,16 @@ import org.springframework.stereotype.Service;
  * @author cuent
  */
 @Service
-public class PublishProfile {
-    
-    @Autowired
-    FanoutPublisher fanoutPublisher;
-    
-    public void publish(String exchange,  PublishProfileDataEvent send) {
-        RabbitEvent eventToSend = new RabbitEvent();
-        eventToSend.type = "profile_data";
-        eventToSend.message = send;
+public class PublishProfile extends RabbitPublisher {
 
-        fanoutPublisher.publish(exchange, eventToSend);
+    @Override
+    protected String getExchangeType() {
+        return "fanout";
     }
-    
+
+    public void publish(String exchange, PublishProfileDataEvent send) {
+        // Publicar directamente el DTO sin envolver en RabbitEvent
+        super.publish(exchange, "", send);
+    }
+
 }

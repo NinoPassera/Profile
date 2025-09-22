@@ -4,11 +4,14 @@
  */
 package com.microservice.amin.rabbit;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.microservice.amin.rabbit.dto.CatalogArticleResponse;
 import com.microservice.amin.tools.gson.GsonTools;
-import com.microservice.amin.tools.rabbit.CatalogConsumer;
+import com.microservice.amin.tools.rabbit.RabbitConsumer;
 import com.microservice.amin.wish.WishlistService;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.AMQP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.annotation.PostConstruct;
@@ -22,13 +25,10 @@ import org.springframework.stereotype.Service;
  * @author cuent
  */
 @Service
-public class ArticleExistResponseConsumer {
+public class ArticleExistResponseConsumer extends RabbitConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(ArticleExistResponseConsumer.class);
     private final Map<String, Boolean> responseMap = new ConcurrentHashMap<>();
-
-    @Autowired
-    private CatalogConsumer catalogConsumer;
 
     @Autowired
     private WishlistService wishlistService;
@@ -41,8 +41,7 @@ public class ArticleExistResponseConsumer {
         logger.info("Queue: amin_article_exist_response");
         logger.info("=====================================================");
 
-        catalogConsumer
-                .init("article_exist_response", "article_exist_response", "amin_article_exist_response")
+        this.init("article_exist_response", "article_exist_response", "amin_article_exist_response")
                 .setMessageProcessor(this::processCatalogMessage)
                 .start();
 
@@ -92,5 +91,36 @@ public class ArticleExistResponseConsumer {
             }
         }
         return null; // No se recibió respuesta
+    }
+
+    @Override
+    protected DefaultConsumer createMessageConsumer(Channel channel) {
+        return new CatalogMessageConsumer(channel);
+    }
+
+    /**
+     * Consumer específico para mensajes del catálogo
+     */
+    class CatalogMessageConsumer extends DefaultConsumer {
+
+        CatalogMessageConsumer(Channel channel) {
+            super(channel);
+        }
+
+        @Override
+        public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+                byte[] body) {
+            try {
+                String messageBody = new String(body);
+                logger.info("=== MENSAJE RECIBIDO DEL CATÁLOGO ===");
+                logger.info("Body: {}", messageBody);
+                logger.info("====================================");
+
+                processMessage(messageBody);
+
+            } catch (Exception e) {
+                logger.error("Error procesando mensaje del catálogo: {}", e.getMessage(), e);
+            }
+        }
     }
 }

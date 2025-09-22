@@ -5,7 +5,6 @@
 package com.microservice.amin.rabbit.dto;
 
 import com.google.gson.annotations.SerializedName;
-import com.microservice.amin.rabbit.PublishProfile;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.Date;
 
@@ -14,37 +13,37 @@ import java.util.Date;
  * @author cuent
  */
 public final class PublishProfileDataEvent {
- 
-    @NotEmpty(message= "No puede estar vacio")
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("profileId")
-    public  String profileId;
-    
-    @NotEmpty(message= "No puede estar vacio")
+    public String profileId;
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("userId")
-    public  String userId;
-    
-    @NotEmpty(message= "No puede estar vacio")
+    public String userId;
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("firstName")
-    public  String firstName;
-    
-    
-    @NotEmpty(message= "No puede estar vacio")
+    public String firstName;
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("lastName")
-    public  String lastName;
-    
-    @NotEmpty(message= "No puede estar vacio")
+    public String lastName;
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("imageId")
-    public  String imageId;
-    
-    @NotEmpty(message= "No puede estar vacio")
+    public String imageId;
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("creationDate")
     public final Date creationDate;
-    
-    @NotEmpty(message= "No puede estar vacio")
+
+    @NotEmpty(message = "No puede estar vacio")
     @SerializedName("updateDate")
     public final Date updateDate;
 
-    public PublishProfileDataEvent(String profileId, String userId, String firstName, String lastName, String imageId, Date creationDate, Date updateDate) {
+    public PublishProfileDataEvent(String profileId, String userId, String firstName, String lastName, String imageId,
+            Date creationDate, Date updateDate) {
         this.profileId = profileId;
         this.userId = userId;
         this.firstName = firstName;
@@ -58,8 +57,6 @@ public final class PublishProfileDataEvent {
         this.creationDate = creationDate;
         this.updateDate = updateDate;
     }
-    
-    
 
     public String getProfileId() {
         return profileId;
@@ -100,9 +97,5 @@ public final class PublishProfileDataEvent {
     public void setImageId(String imageId) {
         this.imageId = imageId;
     }
-    
-    
 
-    
- 
 }

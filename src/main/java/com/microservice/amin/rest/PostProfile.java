@@ -44,7 +44,8 @@ public class PostProfile {
         logger.info("Recibida solicitud para crear/actualizar perfil");
 
         User user = tokenService.validateUser(auth);
-        logger.debug("Usuario validado exitosamente: {}", user.getId());
+        logger.info("Usuario validado exitosamente - ID: {}, Name: {}, Login: {}",
+                user.getId(), user.getName(), user.getLogin());
 
         // Buscar perfil existente del usuario
         Profile existingProfile = service.findProfileByUserID(user.getId());
@@ -61,7 +62,7 @@ public class PostProfile {
         } else {
             // Crear nuevo perfil
             profile = new Profile();
-            profile.setUserId(user.id);
+            profile.setUserId(user.getId());
             profile.setFirstName(profileRequest.getFirstName());
             profile.setLastName(profileRequest.getLastName());
             profile.setEmail(profileRequest.getEmail());

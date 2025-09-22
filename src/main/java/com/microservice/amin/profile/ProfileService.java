@@ -186,8 +186,9 @@ public class ProfileService {
         return profileRepository.findByUserId(userId);
     }
 
-    public boolean existProfileByID(String id) {
-        return profileRepository.existsById(id);
+    public boolean existProfileByID(String userId) {
+        Profile profile = profileRepository.findByUserId(userId);
+        return profile != null;
     }
 
     /**

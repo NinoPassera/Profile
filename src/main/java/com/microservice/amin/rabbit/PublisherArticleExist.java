@@ -4,13 +4,13 @@
  */
 package com.microservice.amin.rabbit;
 
-import com.microservice.amin.tools.rabbit.DirectPublisher;
+import com.microservice.amin.rabbit.dto.ArticleExistRequest;
+import com.microservice.amin.tools.rabbit.RabbitPublisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,35 +18,35 @@ import org.springframework.stereotype.Component;
  * @author cuent
  */
 @Component
-public class PublisherArticleExist {
+public class PublisherArticleExist extends RabbitPublisher {
+    private static final Logger logger = LoggerFactory.getLogger(PublisherArticleExist.class);
     private final Map<String, Boolean> responseMap = new ConcurrentHashMap<>();
 
-    @Autowired
-    private DirectPublisher directPublisher;
+    @Override
+    protected String getExchangeType() {
+        return "direct";
+    }
 
     public void publishArticleExist(String articleId, String correlationId) {
-        // Crear el mensaje que espera el catálogo
-        Map<String, Object> message = new HashMap<>();
-        message.put("referenceId", correlationId);
-        message.put("articleId", articleId);
+        // Crear el mensaje usando DTO
+        ArticleExistRequest.ArticleExistMessage message = new ArticleExistRequest.ArticleExistMessage(correlationId,
+                articleId);
+        ArticleExistRequest catalogMessage = new ArticleExistRequest(
+                correlationId,
+                "article_exist_response",
+                "article_exist_response",
+                message);
 
-        // Crear el objeto principal que espera el catálogo
-        Map<String, Object> catalogMessage = new HashMap<>();
-        catalogMessage.put("correlation_id", correlationId);
-        catalogMessage.put("routing_key", "article_exist_response");
-        catalogMessage.put("exchange", "article_exist_response");
-        catalogMessage.put("message", message);
+        logger.info("=== ENVIANDO MENSAJE AL CATÁLOGO ===");
+        logger.info("Exchange: article_exist");
+        logger.info("Routing Key: article_exist");
+        logger.info("Correlation ID: {}", correlationId);
+        logger.info("Article ID: {}", articleId);
+        logger.info("Mensaje completo: {}", catalogMessage);
+        logger.info("=====================================");
 
-        System.out.println("=== ENVIANDO MENSAJE AL CATÁLOGO ===");
-        System.out.println("Exchange: article_exist");
-        System.out.println("Routing Key: article_exist");
-        System.out.println("Correlation ID: " + correlationId);
-        System.out.println("Article ID: " + articleId);
-        System.out.println("Mensaje completo: " + catalogMessage);
-        System.out.println("=====================================");
-
-        // Publicar directamente el mensaje (no usar RabbitEvent)
-        directPublisher.publish("article_exist", "article_exist", catalogMessage);
+        // Publicar usando DTO
+        publish("article_exist", "article_exist", catalogMessage);
     }
 
     public boolean waitForResponse(String articleId, long timeout) throws InterruptedException {

@@ -4,6 +4,7 @@
  */
 package com.microservice.amin.wish;
 
+import com.microservice.amin.profile.Profile;
 import com.microservice.amin.profile.ProfileService;
 import com.microservice.amin.rabbit.PublisherArticleExist;
 import java.util.List;
@@ -78,7 +79,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (!profileService.existProfileByID(profileId)) {
+        if (profileService.findProfileByUserID(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 
@@ -100,7 +101,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (!profileService.existProfileByID(profileId)) {
+        if (profileService.findProfileByUserID(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 
@@ -137,7 +138,7 @@ public class WishlistService {
         }
 
         // Verifica que exista un perfil
-        if (!profileService.existProfileByID(profileId)) {
+        if (profileService.findProfileByUserID(profileId) == null) {
             throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
         }
 
@@ -186,5 +187,80 @@ public class WishlistService {
 
     public List<WishlistItem> findWishListItemByProfileId(String profileId) {
         return wishlistRepository.findByProfileIdAndStatus(profileId, WishlistStatus.VALID);
+    }
+
+    /**
+     * Elimina artículos comprados de la lista de deseos del usuario
+     * Este método se ejecuta cuando se recibe un evento order_placed
+     * 
+     * @param userId              ID del usuario que realizó la compra
+     * @param purchasedArticleIds Lista de IDs de artículos comprados
+     * @return Número de artículos eliminados de la wishlist
+     */
+    public int removePurchasedArticlesFromWishlist(String userId, java.util.List<String> purchasedArticleIds) {
+        // Validaciones de entrada
+        if (userId == null || userId.trim().isEmpty()) {
+            logger.warn("UserId nulo o vacío recibido para eliminación de artículos comprados");
+            return 0;
+        }
+
+        if (purchasedArticleIds == null || purchasedArticleIds.isEmpty()) {
+            logger.warn("Lista de artículos comprados vacía para userId: {}", userId);
+            return 0;
+        }
+
+        logger.info("Procesando eliminación de artículos comprados para userId: {}, artículos: {}",
+                userId, purchasedArticleIds);
+
+        try {
+            // Verifica que exista un perfil y obtiene el profileId
+            Profile userProfile = profileService.findProfileByUserID(userId);
+            if (userProfile == null) {
+                logger.warn("No existe un perfil para userId: {}, ignorando evento order_placed", userId);
+                return 0;
+            }
+
+            String profileId = userProfile.getId();
+            logger.debug("Perfil encontrado - ProfileId: {}, UserId: {}", profileId, userId);
+
+            int removedCount = 0;
+
+            // Procesa cada artículo comprado
+            for (String articleId : purchasedArticleIds) {
+                if (articleId == null || articleId.trim().isEmpty()) {
+                    logger.warn("ArticleId nulo o vacío, saltando eliminación");
+                    continue;
+                }
+
+                // Busca el artículo en la wishlist del usuario usando profileId
+                java.util.Optional<WishlistItem> wishlistItem = wishlistRepository.findByProfileIdAndArticleId(
+                        profileId,
+                        articleId);
+
+                if (wishlistItem.isPresent()) {
+                    try {
+                        // Elimina el artículo de la wishlist
+                        wishlistRepository.delete(wishlistItem.get());
+                        removedCount++;
+                        logger.info("Artículo {} eliminado de wishlist del usuario {}", articleId, userId);
+                    } catch (Exception e) {
+                        logger.error("Error al eliminar artículo {} de wishlist del usuario {}: {}",
+                                articleId, userId, e.getMessage());
+                    }
+                } else {
+                    logger.debug("Artículo {} no encontrado en wishlist del usuario {}", articleId, userId);
+                }
+            }
+
+            logger.info("Eliminación completada para userId: {}, {} artículos removidos de wishlist",
+                    userId, removedCount);
+
+            return removedCount;
+
+        } catch (Exception e) {
+            logger.error("Error procesando eliminación de artículos comprados para userId {}: {}",
+                    userId, e.getMessage(), e);
+            throw new RuntimeException("Error al procesar eliminación de artículos de wishlist", e);
+        }
     }
 }
