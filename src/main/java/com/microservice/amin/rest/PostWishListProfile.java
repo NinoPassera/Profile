@@ -90,7 +90,7 @@ public class PostWishListProfile {
                         "El articleId es requerido");
             }
 
-            // Validar si el artículo ya existe en la wishlist (solo para acción "add")
+            // Validar si el artículo ya existe en la wishlist (para acción "add")
             if (wishListProfileRequest.getAction().equals("add")) {
                 try {
                     wishlistService.validateArticleNotInWishlist(
@@ -98,6 +98,18 @@ public class PostWishListProfile {
                             wishListProfileRequest.getArticleId());
                 } catch (IllegalArgumentException e) {
                     return createErrorResponse(HttpStatus.CONFLICT, "Artículo duplicado",
+                            e.getMessage());
+                }
+            }
+
+            // Validar si el artículo existe en la wishlist (para acción "delete")
+            if (wishListProfileRequest.getAction().equals("delete")) {
+                try {
+                    wishlistService.validateArticleExistsInWishlist(
+                            wishListProfileRequest.getProfileId(),
+                            wishListProfileRequest.getArticleId());
+                } catch (IllegalArgumentException e) {
+                    return createErrorResponse(HttpStatus.NOT_FOUND, "Artículo no encontrado",
                             e.getMessage());
                 }
             }

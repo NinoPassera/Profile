@@ -13,8 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 public class Profile {
 
-   
-    
     @Id
     public String id;
     public String userId;
@@ -22,11 +20,11 @@ public class Profile {
     public String lastName;
     public String email;
     public String imageId;
-    
+
     public Date creationDate = new Date();
     public Date updateDate = new Date();
 
-    public Profile(String userId, String firstName,String lastName, String email, String imageId) {
+    public Profile(String userId, String firstName, String lastName, String email, String imageId) {
         this.userId = userId;
         this.firstName = firstName;
         this.email = email;
@@ -85,8 +83,6 @@ public class Profile {
         this.imageId = imageId;
     }
 
-    
-
     public Date getCreationDate() {
         return creationDate;
     }
@@ -102,12 +98,5 @@ public class Profile {
     public void setUpdateDate(Date updateDate) {
         this.updateDate = updateDate;
     }
-    
-    
-    
 
-    
-    
-   
-    
 }

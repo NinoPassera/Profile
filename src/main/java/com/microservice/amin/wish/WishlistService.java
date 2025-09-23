@@ -90,6 +90,28 @@ public class WishlistService {
         }
     }
 
+    public void validateArticleExistsInWishlist(String profileId, String articleId) {
+        // Validaciones de entrada
+        if (profileId == null || profileId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El profileId no puede ser null o vacío.");
+        }
+
+        if (articleId == null || articleId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El articleId no puede ser null o vacío.");
+        }
+
+        // Verifica que exista un perfil
+        if (profileService.getProfile(profileId) == null) {
+            throw new IllegalArgumentException("No existe un perfil al que asignar el artículo.");
+        }
+
+        // Verifica si el artículo está en la wishlist
+        Optional<WishlistItem> existingItem = wishlistRepository.findByProfileIdAndArticleId(profileId, articleId);
+        if (!existingItem.isPresent()) {
+            throw new IllegalArgumentException("El artículo no está en la wishlist.");
+        }
+    }
+
     public void addArticleToWishlist(String profileId, String articleId) {
         // Validaciones de entrada
         if (profileId == null || profileId.trim().isEmpty()) {
