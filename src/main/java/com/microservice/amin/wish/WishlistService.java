@@ -112,6 +112,53 @@ public class WishlistService {
         }
     }
 
+    /**
+     * Valida que el usuario tenga permisos para modificar el perfil
+     */
+    public void validateUserPermissions(String userId, String profileId) {
+        Profile targetProfile = profileService.getProfile(profileId);
+        if (targetProfile == null) {
+            throw new IllegalArgumentException("No se encontró el perfil especificado");
+        }
+
+        if (!targetProfile.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("No tienes permisos para modificar este perfil");
+        }
+    }
+
+    /**
+     * Valida la solicitud de wishlist
+     */
+    public void validateWishlistRequest(String profileId, String action, String articleId) {
+        if (profileId == null || profileId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El profileId es requerido");
+        }
+
+        if (action == null || action.trim().isEmpty()) {
+            throw new IllegalArgumentException("La acción es requerida");
+        }
+
+        if (!action.equals("add") && !action.equals("delete")) {
+            throw new IllegalArgumentException("La acción debe ser 'add' o 'delete'");
+        }
+
+        if (articleId == null || articleId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El articleId es requerido");
+        }
+    }
+
+    /**
+     * Obtiene el mensaje de éxito según la acción
+     */
+    public String getSuccessMessage(String action) {
+        if ("add".equals(action)) {
+            return "El artículo se está validando y será añadido a la wishlist con estado PENDING_VALIDATION.";
+        } else if ("delete".equals(action)) {
+            return "El artículo está siendo eliminado de la wishlist.";
+        }
+        return "Operación de wishlist procesada exitosamente.";
+    }
+
     public void addArticleToWishlist(String profileId, String articleId) {
         // Validaciones de entrada
         if (profileId == null || profileId.trim().isEmpty()) {
